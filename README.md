@@ -6,7 +6,6 @@ An Algo Project at Codam (42). This project is about implementing a dynamic memo
 This mini project is about writing a dynamic allocation memory management library. [Complete Subject](SUBJECT.pdf)
 
 ### Restrictions
-
 Functions allowed for use:
 ```
 mmap(2)
@@ -18,14 +17,13 @@ write(2)
 Project must be written according to the 42 coding standards, the `Norme`.
 
 ### Requirements
-
 Rewrite the following functions:
 ```
 void       free(void *ptr);
 void       *malloc(size_t size);
 void       *realloc(void *ptr, size_t size);
 ```
-[man page](https://man7.org/linux/man-pages/man3/malloc.3.html)
+[malloc man page](https://man7.org/linux/man-pages/man3/malloc.3.html)
 
  - allocations must belong to 3 different memory areas depending on allocation size (`TINY`, `SMALL`, `LARGE`)
  - `TINY` and `SMALL` areas must be preallocated and must have enough space for at least 100 allocations
