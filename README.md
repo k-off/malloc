@@ -51,3 +51,12 @@ Extra functionality:
     - `SHRT` - short mode, the same output as for `show_alloc_mem`
     - `STD` - standard mode, outputs block metadata
     - `EXT` - extended mode, outputs hex dump of memory stored in the `data` area of the block
+
+# Usage
+ - clone repository
+ - if you don't have `norminette` installed on your device, comment out lines 29-36 in the file `test/test.sh`
+```
+cd test
+sh test.sh
+```
+![alt text](test_output.png)
