@@ -50,6 +50,6 @@ Total : 52698 bytes
 Extra functionality:
   - "defragment” the freed memory
   - `void show_alloc_mem_ex(int mode);` - function that displays more details depending on `mode` passed as argument:
-   - `SHRT` - short mode, the same output as for `show_alloc_mem`
-   - `STD` - standard mode, outputs block metadata
-   - `EXT` - extended mode, outputs hex dump of memory stored in the `data` area of the block
+    - `SHRT` - short mode, the same output as for `show_alloc_mem`
+    - `STD` - standard mode, outputs block metadata
+    - `EXT` - extended mode, outputs hex dump of memory stored in the `data` area of the block
