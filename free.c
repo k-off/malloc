@@ -96,7 +96,7 @@ void		free(void *ptr)
 
 	if (!ptr || ptr < get_zone(SIZE_S)->begin)
 		return ;
-	block = (t_block*)ptr - 1;
+	block = ((t_block*)ptr) - 1;
 	if (block->magic != MAGIC)
 		return ;
 	zone = get_zone(SIZE_S);

@@ -12,40 +12,66 @@
 
 #include "malloc.h"
 
-void	*malloc(size_t size)
-{
-	void	*ptr;
-	t_block	*block;
+pthread_mutex_t		g_mutex;
+t_zone				*g_zone[3] = {NULL, NULL, NULL};
 
-	ptr = NULL;
-	size = align_block(size);
-	block = get_block(get_zone(size), size);
-	if (block)
+static int			is_in_zone(void *pointer, t_block **block)
+{
+	int			i;
+
+	i = 0;
+	if (pointer == NULL || (size_t)pointer % sizeof(size_t) ||
+		(size_t)pointer - (size_t)g_zone[0]->head > 0xffffffffu)
+		i = -1;
+	else
 	{
-		ptr = (void*)(block + 1);
+		*block = (t_block*)pointer;
+		(*block)--;
+		if (block[0]->magic != MAGIC || block[0]->is_free)
+			i = -1;
 	}
-	return (ptr);
+	while (i > -1 && i < 3)
+	{
+		if (g_zone[i] && pointer >= (void*)(g_zone[i]->head) &&
+			pointer <= (void*)((g_zone[i]->tail) + 1))
+			return (i);
+		i++;
+	}
+	pthread_mutex_unlock(&g_mutex);
+	return (i);
 }
 
-void	*realloc(void *ptr, size_t size)
+void				free(void *ptr)
+{
+	t_block		*block;
+	int			zone_index;
+
+	pthread_mutex_lock(&g_mutex);
+	zone_index = is_in_zone(ptr, &block);
+	if (zone_index < 0)
+		return ;
+	update_zone(g_zone[zone_index], block, REMOVE);
+	block->is_free = 1;
+	block->magic = 0;
+	if (zone_index < 2)
+		defragment(g_zone[zone_index], block);
+	else
+		munmap_block(block);
+	pthread_mutex_unlock(&g_mutex);
+}
+
+void				*realloc(void *ptr, size_t size)
 {
 	t_block *block;
 	void	*new_ptr;
 
-	if (!ptr)
-	{
+	if (!ptr && size)
+		return (malloc(size));
+	if (is_in_zone(ptr, &block) < 0)
 		return (NULL);
-	}
-	block = (t_block*)ptr - 1;
-	if (block->magic != MAGIC || block->is_free)
-	{
-		return (NULL);
-	}
 	new_ptr = ptr;
 	if (size <= block->size)
-	{
 		return (new_ptr);
-	}
 	else
 	{
 		new_ptr = malloc(size);
@@ -55,17 +81,21 @@ void	*realloc(void *ptr, size_t size)
 	return (new_ptr);
 }
 
-void	*calloc(size_t nmemb, size_t size)
+void				*malloc(size_t size)
 {
-	size_t	*ptr;
+	t_block		*block;
+	void		*ptr;
 
-	size *= nmemb;
-	ptr = (size_t*)malloc(size);
-	size /= sizeof(size_t);
-	while (size)
-	{
-		size--;
-		ptr[size] = 0;
-	}
-	return ((void*)ptr);
+	pthread_mutex_lock(&g_mutex);
+	ptr = NULL;
+	block = NULL;
+	size = align_size(size, sizeof(t_block));
+	block = get_block(get_zone(size), size);
+	if (!block)
+		block = get_block(get_zone(MEDIUM_BLOCK + 1), size);
+	if (block)
+		ptr = (void*)(++block);
+	block--;
+	pthread_mutex_unlock(&g_mutex);
+	return (ptr);
 }

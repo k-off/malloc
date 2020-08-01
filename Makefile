@@ -14,9 +14,9 @@ ifeq ($(HOSTTYPE),)
 	HOSTTYPE := $(shell uname -m)_$(shell uname -s)
 endif
 
-SOURCES = malloc.c block.c free.c output.c prints.c utils.c zone.c
+SOURCES = malloc.c block.c output.c prints.c utils.c zone.c
 
-OBJECTS = malloc.o block.o free.o output.o prints.o utils.o zone.o
+OBJECTS = malloc.o block.o output.o prints.o  utils.o zone.o
 
 
 LIB_NAME = libft_malloc_$(HOSTTYPE).so

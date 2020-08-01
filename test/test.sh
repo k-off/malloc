@@ -87,21 +87,21 @@ echo
 echo "${HIGH}Compiling tests...${EOC}"
 cd test
 rm -f test0 test1 test2 test3 test3+ test4 test5 test6
-gcc -o test0 test0.c -L. -lft_malloc
-gcc -o test1 test1.c -L. -lft_malloc
-gcc -o test2 test2.c -L. -lft_malloc
-gcc -o test3 test3.c -L. -lft_malloc
-gcc -o test3+ test3+.c -L. -lft_malloc
-gcc -o test4 test4.c -L. -lft_malloc
+gcc -o test0 test0.c # -L. -lft_malloc
+gcc -o test1 test1.c # -L. -lft_malloc
+gcc -o test2 test2.c # -L. -lft_malloc
+gcc -o test3 test3.c # -L. -lft_malloc
+gcc -o test3+ test3+.c # -L. -lft_malloc
+gcc -o test4 test4.c # -L. -lft_malloc
 gcc -o test5 test5.c -L. -lft_malloc
 gcc -o test6 test6.c -L. -lft_malloc
 
 sleep 1
 echo
 echo "${HIGH}Test malloc:${EOC}"
-MLK0=$(/usr/bin/time -l ./test0 2>&1 | grep "page reclaims" | awk '$1=$1' | cut -d ' ' -f1)
-MLK1=$(/usr/bin/time -l ./test1 2>&1 | grep "page reclaims" | awk '$1=$1' | cut -d ' ' -f1)
-MLK2=$(/usr/bin/time -l ./test2 2>&1 | grep "page reclaims" | awk '$1=$1' | cut -d ' ' -f1)
+MLK0=$(sh run.sh /usr/bin/time -l ./test0 2>&1 | grep "page reclaims" | awk '$1=$1' | cut -d ' ' -f1)
+MLK1=$(sh run.sh /usr/bin/time -l ./test1 2>&1 | grep "page reclaims" | awk '$1=$1' | cut -d ' ' -f1)
+MLK2=$(sh run.sh /usr/bin/time -l ./test2 2>&1 | grep "page reclaims" | awk '$1=$1' | cut -d ' ' -f1)
 
 echo "Malloc not used : ${MLK0} page reclaims"
 echo "Malloc used     : ${MLK1} page reclaims"
@@ -126,12 +126,12 @@ echo "${HIGH}Test free:${EOC}"
 FREEDIFF1=$((MLK2 - MLK1))
 FREEDIFF2=$((MLK2 - MLK0))
 echo "Free used       : ${MLK2} page reclaims"
-if [ $FREEDIFF1 -le '0' ]; then
+if [ $FREEDIFF1 -lt '0' ]; then
 echo "${GREEN}Difference: ${MLK2}-${MLK1}=${FREEDIFF1}, less pages reused with free, passed${EOC}"
 else
-echo "${RED}Difference: ${MLK2}-${MLK1}=${FREEDIFF1}, more pages reused with free, not passed${EOC}"
+echo "${RED}Difference: ${MLK2}-${MLK1}=${FREEDIFF1}, same or more pages reused with free, not passed${EOC}"
 fi
-if [ $MLKDIFF -lt '4' ]; then
+if [ $FREEDIFF2 -lt 4 ]; then
 echo "${GREEN}Difference: ${MLK2}-${MLK0}=${FREEDIFF2}, good quality of free, passed${EOC}"
 else
 echo "${YELLOW}Difference: ${MLK2}-${MLK0}=${FREEDIFF2}, bad quality of free, not passed${EOC}"
@@ -141,8 +141,8 @@ fi
 sleep 1
 echo
 echo "${HIGH}Test realloc:${EOC}"
-REALLOC1=$(./test3 | grep "Bonjours" | wc -l | awk '$1=$1')
-./test3
+REALLOC1=$(sh run.sh ./test3 | grep "Bonjours" | wc -l | awk '$1=$1')
+sh run.sh ./test3
 if [ $REALLOC1 -eq '2' ]; then
 echo "${GREEN}Passed${EOC}"
 else
@@ -152,8 +152,8 @@ fi
 sleep 1
 echo
 echo "${HIGH}Test realloc++:${EOC}"
-REALLOC2=$(./test3+ | grep "Bonjours" | wc -l | awk '$1=$1')
-./test3+
+REALLOC2=$(sh run.sh ./test3+ | grep "Bonjours" | wc -l | awk '$1=$1')
+sh run.sh ./test3+
 if [ $REALLOC2 -eq '2' ]; then
 echo "${GREEN}Passed${EOC}"
 else
@@ -163,8 +163,8 @@ fi
 sleep 1
 echo
 echo "${HIGH}Error handling:${EOC}"
-ERROR=$(./test4 | grep "Bonjours" | wc -l | awk '$1=$1')
-./test4
+ERROR=$(sh run.sh ./test4 | grep "Bonjours" | wc -l | awk '$1=$1')
+sh run.sh ./test4
 if [ $ERROR -eq '1' ]; then
 echo "${GREEN}Passed${EOC}"
 else
@@ -176,10 +176,14 @@ echo
 echo "${HIGH}show_alloc_mem:${EOC}"
 SHOW=$(./test5 | grep "TINY\|SMALL\|LARGE\|Total\|bytes" | wc -l | awk '$1=$1')
 ./test5
-if [ $SHOW -eq '9' ]; then
+if [ $SHOW -eq 9 ]; then
 echo "${GREEN}Passed${EOC}"
 else
 echo "${RED}Not passed${EOC}"
 fi
+
+rm -f test0 test1 test2 test3 test3+ test4 test5 test6 *.so
+cd ..
+make fclean
 
 unset HOSTTYPE
