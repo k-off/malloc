@@ -12,7 +12,7 @@
 
 #include "malloc.h"
 
-void	print_meta(t_block *tmp, int mode)
+void	print_meta(t_block *block, int mode)
 {
 	size_t	block_begin;
 	size_t	block_end;
@@ -22,9 +22,9 @@ void	print_meta(t_block *tmp, int mode)
 
 	if (!mode)
 		return ;
-	block_begin = (size_t)tmp;
-	block_end = (size_t)(tmp + 1 + tmp->size / sizeof(t_block));
-	data_begin = (size_t)(tmp + 1);
+	block_begin = (size_t)block;
+	block_end = (size_t)(block + 1 + block->size / sizeof(t_block));
+	data_begin = (size_t)(block + 1);
 	block_size = data_begin - block_begin;
 	data_size = block_end - data_begin;
 	write(1, "\n\tMetadata\n\tBlock address: ", 27);
@@ -59,7 +59,7 @@ void	print_block(t_block *block, int mode)
 	write(1, " : ", 3);
 	print_size_t(end - begin, 1);
 	write(1, " bytes\n", 7);
-	if (!block->is_free && mode > STD)
+	if (!block->is_free && mode > STANDARD)
 	{
 		write(1, "\tData:\n", 7);
 		print_memory("\t\t", block + 1, block->size);
@@ -68,21 +68,21 @@ void	print_block(t_block *block, int mode)
 
 size_t	print_zone(t_zone *zone, int mode, size_t total_allocated)
 {
-	t_block		*tmp;
+	t_block		*block;
 
 	if (!zone)
-	{
 		return (0);
-	}
-	write(1, zone->type == M ? "SMALL : " : "TINY  : ", 8);
-	print_pointer((size_t)zone->begin);
+	zone == g_zone[0] ? write(1, "TINY  : ", 8) : 0;
+	zone == g_zone[1] ? write(1, "SMALL : ", 8) : 0;
+	zone == g_zone[2] ? write(1, "LARGE : ", 8) : 0;
+	print_pointer((size_t)zone);
 	write(1, "\n", 1);
-	tmp = zone->head;
-	while (tmp)
+	block = zone->head;
+	while (block)
 	{
-		total_allocated += tmp->size * !tmp->is_free;
-		print_block(tmp, mode);
-		tmp = tmp->next;
+		total_allocated += block->size * !block->is_free;
+		print_block(block, mode);
+		block = block->next;
 	}
 	return (total_allocated);
 }
@@ -90,23 +90,10 @@ size_t	print_zone(t_zone *zone, int mode, size_t total_allocated)
 void	show_alloc_mem_ex(int mode)
 {
 	size_t		total;
-	t_block		*big;
 
-	total = print_zone(get_zone(SIZE_S), mode, 0);
-	total += print_zone(get_zone(SIZE_M), mode, 0);
-	big = manage_big_list(NULL, NULL);
-	if (big)
-	{
-		write(1, "LARGE : ", 8);
-		print_pointer((size_t)big);
-		write(1, "\n", 1);
-	}
-	while (big)
-	{
-		print_block(big, mode);
-		total += big->size;
-		big = big->next;
-	}
+	total = print_zone(g_zone[0], mode, 0);
+	total += print_zone(g_zone[1], mode, 0);
+	total += print_zone(g_zone[2], mode, 0);
 	write(1, "Total : ", 8);
 	print_size_t(total, 1);
 	write(1, "\n", 1);
@@ -114,5 +101,5 @@ void	show_alloc_mem_ex(int mode)
 
 void	show_alloc_mem(void)
 {
-	show_alloc_mem_ex(SHRT);
+	show_alloc_mem_ex(SHORT);
 }

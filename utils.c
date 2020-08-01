@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   malloc.c                                           :+:    :+:            */
+/*   utils.c                                            :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: pacovali <marvin@codam.nl>                   +#+                     */
 /*                                                   +#+                      */
@@ -12,58 +12,65 @@
 
 #include "malloc.h"
 
-char	*ft_strcpy(char *dest, const char *src)
+size_t	align_size(size_t initial_size, size_t alignment_step)
+{
+	if (initial_size < 2)
+		initial_size = 2;
+	return (((initial_size - 1) / alignment_step + 1) * alignment_step);
+}
+
+char	*ft_strcpy(char *destination, const char *source)
 {
 	int		i;
 
 	i = 0;
-	while (src[i] != '\0')
+	while (source[i] != '\0')
 	{
-		dest[i] = src[i];
+		destination[i] = source[i];
 		i++;
 	}
-	dest[i] = src[i];
-	return (dest);
+	destination[i] = source[i];
+	return (destination);
 }
 
-void	*ft_memcpy(void *dst, const void *src, size_t n)
+void	*ft_memcpy(void *destination, const void *source, size_t size)
 {
-	unsigned char	*tmp_dst;
-	unsigned char	*tmp_src;
+	unsigned char	*temporary_destination;
+	unsigned char	*temporary_source;
 	size_t			i;
 
-	if (dst == NULL && src == NULL)
+	if (destination == NULL && source == NULL)
 		return (0);
 	i = 0;
-	tmp_dst = dst;
-	tmp_src = (unsigned char*)src;
-	while (i < n)
+	temporary_destination = destination;
+	temporary_source = (unsigned char*)source;
+	while (i < size)
 	{
-		tmp_dst[i] = (unsigned char)(tmp_src[i] + '\0');
+		temporary_destination[i] = (unsigned char)(temporary_source[i] + '\0');
 		i++;
 	}
-	return (dst);
+	return (destination);
 }
 
-size_t	ft_strlen(const char *s)
+size_t	ft_strlen(const char *string)
 {
 	size_t	i;
 
 	i = 0;
-	while (s[i] != '\0')
+	while (string[i] != '\0')
 		i++;
 	return (i);
 }
 
-void	*ft_memset(void *s, int c, size_t n)
+void	*ft_memset(void *source, int value, size_t size)
 {
-	unsigned char	*ptr;
+	unsigned char	*pointer;
 
-	ptr = (unsigned char*)s;
-	while (n > 0)
+	pointer = (unsigned char*)source;
+	while (size > 0)
 	{
-		n--;
-		ptr[n] = c;
+		size--;
+		pointer[size] = value;
 	}
-	return (s);
+	return (source);
 }
