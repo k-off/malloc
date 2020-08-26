@@ -6,7 +6,7 @@
 /*   By: pacovali <marvin@codam.nl>                   +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2019/01/01 00:00:42 by pacovali      #+#    #+#                 */
-/*   Updated: 2019/01/01 00:01:42 by pacovali      ########   odam.nl         */
+/*   Updated: 2020/08/26 16:42:15 by pacovali      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,6 @@ static int			is_in_zone(void *pointer, t_block **block)
 			return (i);
 		i++;
 	}
-	pthread_mutex_unlock(&g_mutex);
 	return (i);
 }
 
@@ -49,7 +48,10 @@ void				free(void *ptr)
 	pthread_mutex_lock(&g_mutex);
 	zone_index = is_in_zone(ptr, &block);
 	if (zone_index < 0)
+	{
+		pthread_mutex_unlock(&g_mutex);
 		return ;
+	}
 	update_zone(g_zone[zone_index], block, REMOVE);
 	block->is_free = 1;
 	block->magic = 0;
@@ -65,8 +67,10 @@ void				*realloc(void *ptr, size_t size)
 	t_block *block;
 	void	*new_ptr;
 
-	if (!ptr && size)
+	if (!ptr)
 		return (malloc(size));
+	if (!size)
+		return (malloc(1));
 	if (is_in_zone(ptr, &block) < 0)
 		return (NULL);
 	new_ptr = ptr;
@@ -89,13 +93,12 @@ void				*malloc(size_t size)
 	pthread_mutex_lock(&g_mutex);
 	ptr = NULL;
 	block = NULL;
-	size = align_size(size, sizeof(t_block));
+	size = align_size(size + (size == 24 ? 16 : 0), sizeof(t_block));
 	block = get_block(get_zone(size), size);
 	if (!block)
 		block = get_block(get_zone(MEDIUM_BLOCK + 1), size);
 	if (block)
-		ptr = (void*)(++block);
-	block--;
+		ptr = (void*)(&block[1]);
 	pthread_mutex_unlock(&g_mutex);
 	return (ptr);
 }
