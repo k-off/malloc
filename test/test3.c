@@ -1,4 +1,5 @@
-#include "../malloc.h"
+#include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 
 #define MIB (1024 * 1024)

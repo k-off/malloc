@@ -6,7 +6,7 @@ void	pause_execution(void)
 {
 	char key;
 	printf("Press any key to continue...\n");
-	scanf("%c",&key);
+	scanf("%c", &key);
 }
 
 void	test_defragment(void)
